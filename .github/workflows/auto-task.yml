@@ -1,0 +1,59 @@
+name: Linear Auto Task
+
+on:
+  push:
+    branches:
+      - main
+  schedule:
+    # This is UTC, offset the hours argument to match your timzone if needed.
+    - cron: "0 0 * * *"
+
+jobs:
+  auto-task:
+    name: Auto Task
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Set Runner Timezone
+        uses: szenius/set-timezone@v2.0
+        with:
+          # Set this timezone as well
+          timezoneLinux: "Etc/UTC"
+
+      - name: Checkout self
+        id: checkout-self
+        uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20.x
+
+      - name: Get pnpm store directory
+        id: pnpm-cache
+        run: |
+          echo "pnpm_cache_dir=$(pnpm store path)" >> $GITHUB_OUTPUT
+
+      - uses: actions/cache@v3
+        name: Setup pnpm cache
+        with:
+          path: ${{ steps.pnpm-cache.outputs.pnpm_cache_dir }}
+          key: ${{ runner.os }}-pnpm-store-trpc-${{ github.head_ref }}-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-trpc-${{ github.head_ref }}-
+
+      - name: Install Dependencies
+        run: pnpm i
+
+      - name: Run Build
+        run: pnpm build
+
+      - name: Run Linear Auto Task
+        id: run-linear-auto-task
+        uses: nkrkn/linear-auto-task-action@v1.0.0
+        env:
+          # Ensure this is set in your repository's GitHub Action secrets
+          LINEAR_PERSONAL_API_KEY: ${{ secrets.LINEAR_PERSONAL_API_KEY }}
