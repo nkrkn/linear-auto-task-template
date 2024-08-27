@@ -4,9 +4,9 @@ on:
   push:
     branches:
       - main
-  schedule:
-    # This is UTC, offset the hours argument to match your timzone if needed.
-    - cron: "0 0 * * *"
+  # schedule:
+  # This is UTC, offset the hours argument to match your timzone if needed.
+  # - cron: "0 0 * * *"
 
 jobs:
   auto-task:
